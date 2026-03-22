@@ -82,6 +82,17 @@ sequenceDiagram
 4. **Execution Agent:** Takes outputs from both the Planner and Insight agents to synthesize a comprehensive executive report. This includes `solutionApproach`, `actionPlan`, `estimatedTimeline`, `budgetEstimate`, `infrastructureRequirements`, and a production-ready `endToEndPlan`.
 5. **Editing Agent:** Post-generation, users can target individual sections of the report. This agent rewrites targeted isolated text blocks based on new refinement prompts provided by the user.
 
+### Orchestration Flow & Data Passing
+The orchestration logic (`lib/orchestrator.ts`) is triggered via the `/api/plan` route. It chains the agents sequentially: **Planner** → **Insight** → **Execution**. Each agent's output is parsed strictly into JSON and directly injected as context into the next agent in the swarm. This ensures structured data passing and prevents context loss across the pipeline.
+
+### How Section-Level Editing Works
+Users can target individual sections of the generated report (e.g., Problem Breakdown) using the UI. When an edit instruction is submitted, the frontend triggers the Edit API (`app/api/edit/route.ts`). Instead of regenerating the entire document, the API isolates the section content and uses Gemini to rewrite only that specific text block. This approach significantly reduces latency and token usage while maintaining the rest of the report's structural integrity.
+
+### How the Export System Works
+Force Equal AI supports exporting the generated plans into two formats:
+- **Server-Side DOCX:** Handled via the `/api/export/docx` route, the application dynamically generates a native Word document using the `docx` library. It creates structured paragraphs and headings from the JSON report data and returns it as a downloadable attachment stream.
+- **Client-Side PDF:** PDF generation is handled directly within the frontend component (`ReportDashboard.tsx`). To preserve the pixel-perfect Tailwind CSS v4 styling, complex colors, and global CSS keyframes, the application uses `html-to-image` to render the DOM into a high-quality JPEG which is then embedded into a PDF using `jspdf`. This visually-perfect approach circumvents the heavy infrastructure needs of running server-side headless browsers like Puppeteer on edge environments.
+
 ## 🧠  Engineering Perspective
 
 For rigorous, enterprise-grade deployments, Force Equal AI implements numerous advanced architectural patterns to ensure high availability, security, and extensibility:
@@ -104,6 +115,11 @@ The linear pipeline (`orchestrator.ts`) is designed for O/C (Open/Closed) compli
 2. Define the exact TypeScript interface (`FinancialOutput`).
 3. Inject it into `orchestratePlanning` between the Insight and Execution phases and pass the output to downstream consumers.
 
+### 5. Key Decisions & Tradeoffs
+- **Client-Side PDF vs. Server-Side Puppeteer:** Rendering PDFs on the client trades off the ability to generate documents in the background for significantly lower server costs and perfect preservation of complex CSS designs. It avoids the heavy infrastructure requirements of running headless Chrome on Edge networks.
+- **Stateless Orchestration vs. Redis:** Conversation history and session state are managed entirely client-side. Iterative payloads are passed to the backend, enabling the Next.js API routes to remain completely stateless. This allows for seamless deployment on Vercel Edge networks without requiring external caching architectures.
+- **Sequential Swarm vs. Single Prompt:** Splitting generation into Planner, Insight, and Execution agents slightly increases overall latency but dramatically reduces LLM hallucination. It forces the AI to "think step-by-step" in discrete, verifiable chunks before synthesizing the final executive report.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -114,7 +130,7 @@ The linear pipeline (`orchestrator.ts`) is designed for O/C (Open/Closed) compli
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/WizardGeeky/Force-Equal-AI-.git
+git clone https://github.com/WizardGeeky/Force-Equal-AI.git
 cd Force-Equal-AI
 
 # 2. Install dependencies
