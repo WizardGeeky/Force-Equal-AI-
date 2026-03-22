@@ -41,7 +41,40 @@ force-equal-ai/
 ```
 
 ## 🤖 How the Agents Work (End-to-End Workflow)
+
 The platform bypasses standard generation by orchestrating a swarm of agents that build upon each other's outputs:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Chat as Expert Chat API
+    participant Orch as Orchestrator
+    participant Planner as Planner Agent
+    participant Insight as Insight Agent
+    participant Exec as Execution Agent
+    participant UI as Report UI
+    
+    User->>Chat: Submits Project Idea
+    Chat-->>Chat: Validates & Sanitizes Input
+    alt Needs Clarification
+        Chat-->>User: Asks Clarifying Questions
+        User->>Chat: Provides Answers
+    end
+    Chat->>Orch: Status: READY + Context
+    
+    rect rgb(30, 41, 59)
+    note right of Orch: Swarm Execution Pipeline
+    Orch->>Planner: 1. Generate Problem Breakdown
+    Planner-->>Orch: PlannerOutput (JSON)
+    Orch->>Insight: 2. Analyze Risks & Strategies
+    Insight-->>Orch: InsightOutput (JSON)
+    Orch->>Exec: 3. Synthesize Final Report
+    Exec-->>Orch: ExecutionOutput (JSON)
+    end
+    
+    Orch-->>UI: Complete Execution Payload
+    UI-->>User: Renders Dashboard (DOCX/PDF ready)
+```
 
 1. **Expert Observation Agent (Chat):** Activated via `/api/plan`. Uses `analyzeProjectPrompt()` to validate the user's idea. If the idea is ambiguous, it responds with clarifying questions (`CLARIFY` status). If valid, it proceeds (`READY` status).
 2. **Planner Agent:** Taking the enriched problem and the user's answers, it processes the vision and outputs a detailed `problemBreakdown` alongside a list of key `stakeholders`.
@@ -49,7 +82,7 @@ The platform bypasses standard generation by orchestrating a swarm of agents tha
 4. **Execution Agent:** Takes outputs from both the Planner and Insight agents to synthesize a comprehensive executive report. This includes `solutionApproach`, `actionPlan`, `estimatedTimeline`, `budgetEstimate`, `infrastructureRequirements`, and a production-ready `endToEndPlan`.
 5. **Editing Agent:** Post-generation, users can target individual sections of the report. This agent rewrites targeted isolated text blocks based on new refinement prompts provided by the user.
 
-## 🧠 Principal Engineering Perspective
+## 🧠  Engineering Perspective
 
 For rigorous, enterprise-grade deployments, Force Equal AI implements numerous advanced architectural patterns to ensure high availability, security, and extensibility:
 
@@ -80,12 +113,23 @@ The linear pipeline (`orchestrator.ts`) is designed for O/C (Open/Closed) compli
 ### Installation
 
 ```bash
-# 1. Clone the repository and install dependencies
+# 1. Clone the repository
+git clone https://github.com/WizardGeeky/Force-Equal-AI-.git
+cd Force-Equal-AI
+
+# 2. Install dependencies
 npm install
 
-# 2. Add your Google Gemini API key to your environment variables
+# 3. Add your Google Gemini API key to your environment variables
 echo "GEMINI_API_KEY=your_key_here" > .env
 
-# 3. Start the Next.js Turbo Dev Server
+# 4. Start the Next.js Turbo Dev Server
 npm run dev
 ```
+
+## 👨‍💻 Author
+
+**Force Equal AI Team**  
+*Strategic Planning Agent System*  
+- GitHub: [@WizardGeeky](https://github.com/WizardGeeky)
+- Website: [Portfolio](https://eswarb.vercel.app)
