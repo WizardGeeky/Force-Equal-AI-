@@ -1,0 +1,21 @@
+{
+  "name": "PlanAI - Strategic AI Planning Agent",
+  "short_name": "PlanAI",
+  "description": "Turn your ideas into professional execution plans with multi-agent AI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

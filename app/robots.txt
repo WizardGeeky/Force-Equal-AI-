@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://force-equal-ai.vercel.app/sitemap.xml
